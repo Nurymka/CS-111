@@ -1,0 +1,77 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+*** Contents
+  lab2_list.c - implementation of the CLI for operations involving a partitioned shared linked list.
+  lab2_list.gp - gnuplot script for drawing various graphs for analysis of the performance of the operations with the partitioned linked list under various conditions.
+  Makefile - contains directives for building, testing, drawing graphs, cleaning and creating a tarball containing these files.
+  README - contains answers to the assignment questions, assumptions made while implementing modules.
+  SortedList.c - implementation of the sorted linked list.
+  SortedList.h - interface of the sorted linked list.
+  lab2b-*.png - various graphs for analyzing the scalability of parallelization of a shared linked list.
+  lab2b_list.csv - performance data of operations on the partitioned linked list that is used by gnuplot to draw graphs.
+
+*** Assumptions/Notes
+  The arguments for --threads, --iterations and --lists are always positive integers.
+  The arguments for --sync are always either 'm' or 's'.
+  The arguments for --yield in lab2_list are always a combination of chars 'i', 'd', 'l'.
+
+  For the implementation of SortedList:
+    - When the list is empty, the head's prev and next pointers point onto itself.
+    - The prev pointer of the first element points to head.
+    - The next pointer of the last element points to head.
+    (essentially a circular doubly linked list with head as a dummy node)
+
+  Pseudocode of the implemetation of length() of the multilist
+    for each sublist:
+      acquire lock for sublist
+      sum += length(sublist_head)
+      release lock for sublist
+  This implementation means that the length will be equal to the sum of lengths of each sublists at separate moments in time.
+
+  To modularize the thread function, I divided thread list insert & lookup/delete functions into separate subroutines, which means that I had to use them as values for --list argument for the profiler as well, which resulted in calling pprof with four different --list arguments:
+  	pprof --list=thread_list ./lab2_list_debug ./raw.gperf >> profile.out
+  	pprof --list=list_insert ./lab2_list_debug ./raw.gperf >> profile.out
+  	pprof --list=list_lookup_and_delete ./lab2_list_debug ./raw.gperf >> profile.out
+  	pprof --list=redirect_lock ./lab2_list_debug ./raw.gperf >> profile.out
+*** Answers
+
+QUESTION 2.3.1 - Cycles in the basic list implementation:
+Where do you believe most of the cycles are spent in the 1 and 2-thread list tests ?
+  * For the case of the 1-thread list test, most cycles are spent doing list operations.
+  For a 2-thread list, we must look at both locking techniques.
+  * For 2-thread spinlock list, locking/waiting would take up the most cycles.
+  * For 2-thread mutex list, operations would take up the most cycles.
+Why do you believe these to be the most expensive parts of the code?
+  * For 1-thread list test, there is no lock contention (all lock() calls always return immediately), therefore almost all cycles are spent for operations.
+  * For 2-thread spinlock list, there is at most(!) one thread holding the lock, and the other would be wasting cycles spinning. When lock is released, now both threads will be trying to take hold of it, therefore >= 50% cycles are gone for locking.
+  * For 2-thread mutex list, the usual scenario would be that one thread is sleeping (not wasting cycles), while the other is doing useful work. The scenario is only true if we assume that mutex calls are efficient.
+Where do you believe most of the time/cycles are being spent in the high-thread spin-lock tests?
+  * The answer would be analogous to the 2-thread spin-lock list scenario, although high-threads causing even more cycles to be spent on locks. The number of times grow with the number of threads (items = threads * iterations), so each waiting thread spends more time waiting, since operations become more expensive with longer lists.
+Where do you believe most of the time/cycles are being spent in the high-thread mutex tests?
+  * The answer would be analogous to the 2-thread mutex list scenario, as the usual scenario is still most of the threads sleeping, while one is doing useful work. From lab2a_list-4.png, we get that cost per operation still rises for mutex when length is taken into account, meaning that more cycles are gone for locking as number of threads grow. Despite that, operations should still dominate the overall time.
+
+QUESTION 2.3.2 - Execution Profiling:
+Where (what lines of code) are consuming most of the cycles when the spin-lock version of the list exerciser is run with a large number of threads?
+  * For the list insert subroutine, out of total 5275 samples, a staggering 1953 samples are on the line
+   while(__sync_lock_test_and_set(&g_spin_lock, 1));, while only 20 samples are on SortedList_insert(...). For the list lookup & delete subroutine, out of total 5275 samples, 3159 were on while(__sync_lock_test_and_set(&g_spin_lock, 1));, while 143 were on SortedList_lookup(...). Overall, we see that spinning takes up most of the cycles, as list insert subroutine takes up 37.4% of the run time, while lookup and delete subroutine takes up 62.6% of the run time.
+Why does this operation become so expensive with large numbers of threads?
+  * With a larger number of threads, there are more available threads that are waiting for the lock to release, so more threads calling while(...) and spinning, therefore more samples taken by the profiler.
+
+QUESTION 2.3.3 - Mutex Wait Time:
+Look at the average time per operation (vs. # threads) and the average wait-for-mutex time (vs. #threads).
+Why does the average lock-wait time rise so dramatically with the number of contending threads?
+  * With the increasing number of contending threads, the number of items increases (num items = num threads x num iterations), therefore the working thread holds the lock for longer. On top of that, more threads means more competition for one lock, so on average, each thread waits longer than before.
+Why does the completion time per operation rise (less dramatically) with the number of contending threads?
+  * The completion time per operation increases as the cost for operation increases. With the increasing number of contending threads, the lists become longer, so insert/lookup/delete ops take more time to complete.
+How is it possible for the wait time per operation to go up faster (or higher) than the completion time per operation?
+  * Completion time takes the time for the whole program to complete (wall time). Wait time per operation takes the time per thread (CPU time). Threads are intertwined and are run in parallel (if CPU isn't oversaturated), so the completion time per operation is typically shorter than wait time.
+
+QUESTION 2.3.4 - Performance of Partitioned Lists
+Explain the change in performance of the synchronized methods as a function of the number of lists.
+  - From the graphs, we can see that increasing the number of lists increases the performance of synchronized methods. The change makes sense, as we dramatically decreased the competition for the same resource by doing fine-grained synchronization, now multiple threads can work in parallel on multiple sublists. The more threads there are, more of them can be busy on a different sublist.
+Should the throughput continue increasing as the number of lists is further increased? If not, explain why not.
+  - The throughput increase should stall after the number of sublists is large enough, because the probability that two threads are going to access the same sublist is very low. On the other hand, the throughput should still increase for a while, since each sublist is getting shorter as the number of sublists increase, therefore each operation becomes cheaper (assuming we have a good hash function which evenly distributes items).
+It seems reasonable to suggest the throughput of an N-way partitioned list should be equivalent to the throughput of a single list with fewer (1/N) threads. Does this appear to be true in the above curves? If not, explain why not.
+  - No. On average, each N-way partitioned list graph stays above the single list, meaning the throughput for N-way partitioned list is always higher than for single list. As said above, the partitioned lists have shorter sublists, so each operation is cheaper, leading to higher throughputs.

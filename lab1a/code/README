@@ -1,0 +1,27 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+*** Usage
+
+$ make [debug]
+  (debug - compiles with -g3 flag for further debugging with GDB)
+
+$ ./lab1a [--shell]
+  (--shell creates a subshell that the program communicates w/ via pipes)
+
+If "make debug" was executed, lab1a_debug will be generated
+
+*** Contents
+
+lab1a.c: contains the implementation of the lab1a spec
+Makefile: contains statements to compile the program
+README: contains extra info regarding implementation and contents
+
+*** Credits
+
+Basis for functions resetInputMode and setInputMode come from GNU C Manual:
+https://www.gnu.org/software/libc/manual/html_node/Noncanon-Example.html
+
+Basis for poll(2) usage came from the example from POSIX Programmer's manual:
+https://linux.die.net/man/3/poll

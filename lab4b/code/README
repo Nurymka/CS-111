@@ -1,0 +1,20 @@
+NAME: Nurym Kudaibergen
+ID: 404648263
+EMAIL: nurim98@gmail.com
+
+*** Contents
+
+  lab4b.c - C source file containing the implementation for sampling of temperature with Grove Sensors on the Beaglebone.
+  Makefile - contains directives for building, testing, cleaning, and building a tarball with the source files.
+  README - contains descriptions of the contents and assumptions made during implementation of the module.
+  smoketest.sh - contains a small script that tests basic behavior of the program.
+
+*** Assumptions/Notes
+
+  Unrecognized arguments exit with code 1.
+  Failed system calls exit with code 1.
+  The argument for --period is expected to be a positive integer.
+  In stdin commands, value for period is expected to be a non-negative integer.
+
+  The buffer size for stdin commands is 512, that means entering excessively long commands without delimiting with '\n'
+  leads to undefined behavior.

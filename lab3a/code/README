@@ -1,0 +1,14 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+*** Contents
+
+lab3a.c - source code for analyzing the EXT2 file system image.
+README - contains descriptions for contents in the archive.
+Makefile - contains directives for building, cleaning and creating a tarball containing these files.
+ext2_fs.h - contains the structures that the EXT2 file system is made of.
+
+*** Notes
+
+Most of magic numbers were explained in comments, and were taken from http://www.nongnu.org/ext2-doc/ext2.html.

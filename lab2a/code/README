@@ -1,0 +1,69 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+*** Contents
+  lab2_add.c - implementation of the CLI for adding to the shared variable.
+  lab2_add.gp - gnuplot script for drawing various graphs for analysis of the performance of the adds to shared variable under various conditions.
+  lab2_list.c - implementation of the CLI for operations involving a shared linked list.
+  lab2_list.gp - gnuplot script for drawing various graphs for analysis of the performance of the operations with the shared linked list under various conditions.
+  Makefile - contains directives for building, testing, drawing graphs, cleaning and creating a tarball containing these files.
+  README - contains answers to the assignment questions, assumptions made while implementing modules.
+  SortedList.c - implementation of the sorted linked list.
+  SortedList.h - interface of the sorted linked list.
+  lab2_add-*.png - various graphs for analyzing the performance of adding to shared variable.
+  lab2_list-*.png - various graphs for analyzing the performance of a shared linked list.
+  lab2_list.csv - performance data of operations on the sorted linked list that is used by gnuplot to draw graphs.
+  lab2_add.csv - performance data of adding to the shared variable that is used by gnuplot to draw graphs.
+
+*** Assumptions
+  The arguments for --threads and --iterations are always positive integers.
+  The arguments for --sync are always either 'm' or 's'.
+  The arguments for --yield in lab2_list are always a combination of chars 'i', 'd', 'l'.
+
+  For the implementation of SortedList:
+    - When the list is empty, the head's prev and next pointers point onto itself.
+    - The prev pointer of the first element points to head.
+    - The next pointer of the last element points to head.
+    (essentially a circular doubly linked list with head as a dummy node)
+
+*** Answers
+
+QUESTION 2.1.1 - causing conflicts:
+Why does it take many iterations before errors are seen?
+  - Small number of iterations mean that the probability of threads stepping over each other in critical sections is lower.
+Why does a significantly smaller number of iterations so seldom fail?
+  - With smaller number of iterations, the threads can finish their jobs faster, therefore not giving enough leeway for CPU interrupts to happen while a thread is doing its job. Most often, a thread is already done with its job before the other takes over the CPU.
+
+QUESTION 2.1.2 - cost of yielding:
+Why are the --yield runs so much slower?
+Where is the additional time going?
+  - The calculated per-operation timings we get with --yield are not pure times that only consider the operation. In reality, each time sched_yield() is called, there is a context switch overhead, as CPU cycles now go to trapping and saving the current state of the thread. Scheduling a different thread also takes up time.
+Is it possible to get valid per-operation timings if we are using the --yield option?
+If so, explain how. If not, explain why not.
+  - Since we're taking timestamps at the beginning and end of the program, and context switches are spread out throughout the program, it's practically impossible to get per-operation timings. Since context switches are mixed in with operations, it's really hard to tell a particular state of a thread at a particular nanosecond.
+
+QUESTION 2.1.3 - measurement errors:
+Why does the average cost per operation drop with increasing iterations?
+  - When the number of iterations is low, thread creation dominates the overall time. When the number of iterations is high, operations dominate the overall time, thus amortizing the time taken for thread creation.
+If the cost per iteration is a function of the number of iterations, how do we know how many iterations to run (or what the "correct" cost is)?
+  - From the graph, we can see exponential drop that converges to a certain value (like 1/x). Thus, we can conclude that the "correct" cost is reached when the number of iterations reaches infinity, where y-axis intersects the horizontal asymptote (around < 10ns from graph).
+
+QUESTION 2.1.4 - costs of serialization:
+Why do all of the options perform similarly for low numbers of threads?
+  - At low number of threads, there is less competition for the same resource, therefore less race conditions. With low number of race conditions, threads don't have wait at locks, so all options perform similarly.
+Why do the three protected operations slow down as the number of threads rises?
+  - With higher number of threads comes more competition for the same resource, so the non-busy threads add extra overhead by requesting and waiting for the lock to release. The more threads there are, the larger number of threads that are currently blocked and need to be woken up (mutex) from time to time, or plainly waste CPU cycles (spin lock).
+
+QUESTION 2.2.1 - scalability of Mutex
+Compare the variation in time per mutex-protected operation vs the number of threads in Part-1 (adds) and Part-2 (sorted lists).
+Comment on the general shapes of the curves, and explain why they have this shape.
+  - We see a steady growth of the cost for sorted lists, and a much slower growth for adds. The cost per operation even slightly decreases after 4 threads. The linear growth can be explained by extra overhead of each non-busy thread for lock requests and yields.
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+  - Cost per operation for adds grows slowly and even decreases after passing the 4 thread mark. The reason for that is the "simplicity" of the operation. A single add to the counter is done fast, so the lock is released a lot faster than the one for sorted lists, therefore decreasing chances for lock contention. The initial growth in cost for adds can be explained by thread creation, the cost of which is later amortized, as operations start dominating (thus the drop in cost). The steady growth of cost of sorted list operations can be explained by the longer waits for locks of each operation, since the operations (insert/lookup/delete) themselves are more expensive by nature.
+
+QUESTION 2.2.2 - scalability of spin locks
+Compare the variation in time per protected operation vs the number of threads for list operations protected by Mutex vs Spin locks. Comment on the general shapes of the curves, and explain why they have this shape.
+  - The general shape of the graphs suggest that the cost per operation grows linearly for both synchronization methods. The spin-lock has a steeper slope, along with a sudden jump in cost after 12~ threads. The linear growth comes from each thread adding extra overhead from lock requests and waits.
+Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+  - We see the spin-lock increasing at a higher rate than mutex, which makes sense due to the nature of the spin lock mechanism. While one thread is busy doing the intended job, others are stuck in a while loop and wasting CPU cycles, waiting for the resource to free up. At the 12~ thread mark, the sudden jump can be explained by CPU saturation, where the number of threads exceeds the number of cores, therefore extra threads are not waiting in parallel, but rather being scheduled by the CPU one at a time. Scheduler also gives no guarantee that when the thread is done with its job, it is going to be the one not being interrupted for other threads to run.

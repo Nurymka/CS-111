@@ -1,0 +1,18 @@
+{
+  "logger": {
+    "title": "Remote Sync"
+  },
+  "uploadOnSave": true,
+  "useAtomicWrites": false,
+  "deleteLocal": false,
+  "hostname": "lnxsrv09.seas.ucla.edu",
+  "ignore": [
+    ".remote-sync.json",
+    ".git/**"
+  ],
+  "username": "mcinerne",
+  "password": "Ilikepi1",
+  "watch": [],
+  "transport": "scp",
+  "target": "/u/cs/ugrad/mcinerne/Desktop/nurymshit/lab1a"
+}

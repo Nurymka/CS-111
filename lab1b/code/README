@@ -1,0 +1,44 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+*** Usage
+
+$ make [debug]
+  (debug - compiles with -g3 flag for further debugging with GDB)
+
+$ ./lab1b-server --port=<number>
+  create a server instance with a child shell that processes the commands from the client
+$ ./lab1b-client --port=<number> [--compress] [--log=<filename>]
+  creates a client instance
+
+If "make debug" was executed, server-debug and client-debug executables will be generated
+
+*** Contents
+
+lab1b-server.c: contains the implementation for the server-side
+lab1b-client.c: contains the implementation for the client-side
+Makefile: contains statements to compile the program
+README: contains extra info regarding implementation and contents
+
+*** Credits
+
+The zlib usage was based on an example from TA sample code.
+
+Socket usage was basd on an example provided at rpi.edu:
+http://www.cs.rpi.edu/~moorthy/Courses/os98/Pgms/socket.html
+
+Basis for functions resetInputMode and setInputMode come from GNU C Manual:
+https://www.gnu.org/software/libc/manual/html_node/Noncanon-Example.html
+
+Basis for poll(2) usage came from the example from POSIX Programmer's manual:
+https://linux.die.net/man/3/poll
+
+*** Assumptions not mentioned in the spec
+
+- value of port option is assumed to be an integer
+
+*** Known bugs
+
+When the input from the server is too big, the client gets stuck in an infinite loop. I tried decreasing the amount of read data from the server and making the buffer size 4k bytes, but the problem still persists. avail_in property contains more data than the buffer size can store.
+To reproduce, try entering the "w" command in the client which tends generate a lot of output.

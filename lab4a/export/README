@@ -1,0 +1,14 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+BeagleBone
+S/N: BBGW17051218
+MAC: 2CF7F10663C2
+
+Contents:
+my_beaglebone.png: selfie of me holding an assembled Beaglebone.
+build_run.png: screenshot of a successful compilation and execution of the hello world program.
+connected.png: screenshot of a successful hostname change and configured wifi.
+copy.png: screenshot of a successful copy of a helloworld.c file from my machine to beaglebone.
+git.png: screenshot of a successful 'git clone' command on one of my repos.

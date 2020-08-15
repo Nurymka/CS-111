@@ -1,0 +1,40 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+The general approach to copying stdin to stdout:
+  1) Read 200 bytes at a time from stdin (to account for files where file size is 0) and save to a buffer that we allocate. When calling malloc/realloc to store the input fails, the program exits with code 2 (not specified in the spec). When read() fails, the program exits with code 3 (not specified in spec, but suggested by our TA).
+  2) Write the total amount of bytes read to stdout. If write() fails, the program exits with code 3 (not specified in spec).
+
+The approach to I/O redirection in C I took from the provided assignment files (fd_juggling.html).
+
+Smoke-test cases (in lab0_test.sh):
+1) easiest case
+  copy text 'hello world' from stdin to stdout
+  check that stdout has 'hello world'
+2) use of --input (relies on lab0.c existing on the same dir)
+  take lab0.c as input and redirect it to stdin
+  check that lab0.c and stdin are same
+3) use of --input, can't open file
+  create a file with no read permissions and use it as input
+  check that exit code is 2
+4) use of --input, nonexistent file
+  set input to nonexistent file
+  check that exit code is 2
+5) use of --output
+  specify a test output file
+  check that resulting output file has same content as input
+6) use of --output, can't create file
+  create a test file with no write permissions
+  specify output as the test file
+  check that exit code is 3
+7) use of combined --input and --output
+  specify both input and output
+  check that output file has the same contents as input
+  check that exit code is 0
+8) use of --segfault
+  check that exit code is 139
+9) use of --catch
+  check that exit code is 4
+10) use of unrecognized arguments
+  check that exit code is 1

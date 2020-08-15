@@ -1,0 +1,8 @@
+NAME: Nurym Kudaibergen
+EMAIL: nurim98@gmail.com
+ID: 404648263
+
+*** Contents
+  lab3b.py - a python script that audits the file system summary report for inconsistencies
+  Makefile - build directives to create the executable, clean, and create a distribution containing these files
+  README - description of the archive contents

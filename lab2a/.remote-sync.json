@@ -1,0 +1,19 @@
+{
+  "logger": {
+    "title": "Remote Sync"
+  },
+  "uploadOnSave": true,
+  "useAtomicWrites": true,
+  "deleteLocal": false,
+  "hostname": "lnxsrv09.seas.ucla.edu",
+  "target": "/u/cs/ugrad/nurym/Desktop/lab2a",
+  "ignore": [
+    ".remote-sync.json",
+    ".git/**"
+  ],
+  "username": "nurym",
+  "watch": [],
+  "transport": "scp",
+  "keyfile": "/Users/Tom/.ssh/id_rsa",
+  "passphrase": "LD78gZup+mER>HFzEo(G"
+}
